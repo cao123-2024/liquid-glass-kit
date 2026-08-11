@@ -1,0 +1,8 @@
+node_modules/
+dist/
+coverage/
+*.log
+*.zip
+.DS_Store
+Thumbs.db
+.browser-validation/
