@@ -181,6 +181,7 @@ export class LiquidGlassGroup {
       (event) => {
         if (event.button !== 0 || record.pointerId !== null) return;
         if ((event.target as Element).closest("[data-liquid-glass-static]")) return;
+        event.stopPropagation();
         record.pointerId = event.pointerId;
         this.activeId = record.id;
         record.suppressClick = false;

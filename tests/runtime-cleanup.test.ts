@@ -48,4 +48,31 @@ describe("LiquidGlassGroup", () => {
     group.destroy();
     root.remove();
   });
+
+  it("lets a nested button own its pull without also pulling its parent card", () => {
+    const root = document.createElement("section");
+    const card = document.createElement("article");
+    const button = document.createElement("button");
+    card.append(button);
+    root.append(card);
+    document.body.append(root);
+    const renderer: MaterialRendererLike = { render: vi.fn(), destroy: vi.fn() };
+    const group = new LiquidGlassGroup(root, { renderer });
+    group.register(card, { id: "card" });
+    group.register(button, { id: "button" });
+
+    button.dispatchEvent(pointerEvent("pointerdown", 0, 0));
+    button.dispatchEvent(pointerEvent("pointermove", 20, 0));
+
+    expect(button.dataset.liquidGlassGesture).toBe("pull");
+    expect(card.dataset.liquidGlassGesture).not.toBe("pull");
+    group.destroy();
+    root.remove();
+  });
 });
+
+function pointerEvent(type: string, clientX: number, clientY: number): PointerEvent {
+  const event = new MouseEvent(type, { bubbles: true, button: 0, clientX, clientY }) as PointerEvent;
+  Object.defineProperty(event, "pointerId", { value: 1 });
+  return event;
+}
