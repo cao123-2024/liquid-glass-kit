@@ -75,7 +75,13 @@ void main() {
   // Layer 04 · Refraction: low-amplitude internal caustics plus stronger rim displacement.
   float inner_wave = sin(point.x * 0.036 + normal.y * 4.0 + u_time * 0.00032)
     * cos(point.y * 0.029 - normal.x * 3.0 - u_time * 0.00022);
-  vec3 refraction_layer = vec3(0.72, 0.91, 0.94) * inner_wave * shape_layer * (0.010 + edge * 0.040);
+  float impact_ripple = u_material.w * u_material.z
+    * sin((inside_depth / u_pixel_ratio) * 0.38 - u_time * 0.018)
+    * exp(-inside_depth / (38.0 * u_pixel_ratio));
+  vec3 refraction_layer = vec3(0.72, 0.91, 0.94)
+    * (inner_wave + impact_ripple)
+    * shape_layer
+    * (0.010 + edge * 0.040 + u_material.w * u_material.z * 0.012);
 
   // Layer 05 · Highlight: fixed environmental light, never cursor-tracked.
   vec2 light_direction = normalize(vec2(-0.62, -0.78));

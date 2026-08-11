@@ -491,6 +491,10 @@ input[type="range"]::-webkit-slider-thumb {
   position: sticky;
   top: 22px;
   min-height: 620px;
+  max-height: calc(100vh - 44px);
+  overflow: auto;
+  scrollbar-color: rgba(190, 225, 237, 0.28) transparent;
+  scrollbar-width: thin;
 }
 
 .settings-heading h2 {
@@ -635,6 +639,8 @@ input[type="range"]::-webkit-slider-thumb {
     position: relative;
     top: 0;
     min-height: 0;
+    max-height: none;
+    overflow: visible;
   }
 }
 

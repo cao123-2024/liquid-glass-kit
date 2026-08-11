@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { InteractionEngine } from "../src/core/interaction-engine";
-import { estimateVelocity, rubberBand } from "../src/core/physics";
+import { calculateImpactImpulse, estimateVelocity, rubberBand } from "../src/core/physics";
 
 describe("pull physics", () => {
   it("progressively resists distant pulls", () => {
@@ -17,6 +17,16 @@ describe("pull physics", () => {
         { x: 30, y: 10, time: 20 },
       ]),
     ).toEqual({ x: 1500, y: 500 });
+  });
+
+  it("scales impact by pointer speed, material response, and component area", () => {
+    const fastSmall = calculateImpactImpulse({ x: 1400, y: 0 }, 12_000, 0.8);
+    const slowSmall = calculateImpactImpulse({ x: 400, y: 0 }, 12_000, 0.8);
+    const fastLarge = calculateImpactImpulse({ x: 1400, y: 0 }, 48_000, 0.8);
+
+    expect(fastSmall).toBeGreaterThan(slowSmall);
+    expect(fastSmall).toBeGreaterThan(fastLarge);
+    expect(calculateImpactImpulse({ x: 1400, y: 0 }, 12_000, 0)).toBe(0);
   });
 });
 
@@ -60,5 +70,16 @@ describe("InteractionEngine", () => {
     const interrupted = engine.begin({ x: 50, y: 50, time: 80 });
     expect(interrupted.pull.x).toBeCloseTo(beforeInterrupt, 5);
     expect(interrupted.gesture).toBe("press");
+  });
+
+  it("reports live pull velocity and accepts updated material settings", () => {
+    const engine = new InteractionEngine({ dragResistance: 0.15, rebound: 0.1 });
+    engine.configure({ dragResistance: 0.9, rebound: 0.42 });
+    engine.begin({ x: 0, y: 0, time: 0 });
+    engine.move({ x: 20, y: 0, time: 10 });
+    const snapshot = engine.move({ x: 40, y: 0, time: 20 });
+
+    expect(snapshot.velocity.x).toBeCloseTo(2000, 3);
+    expect(snapshot.pull.x).toBeGreaterThan(rubberBand(40, 340, 0.15));
   });
 });

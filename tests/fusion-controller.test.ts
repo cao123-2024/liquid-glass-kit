@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { FusionController } from "../src/core/fusion-controller";
-import { signedRectGap } from "../src/core/geometry";
+import { calculateSnapOffset, signedRectGap } from "../src/core/geometry";
 import { DEFAULT_SETTINGS } from "../src/core/settings";
 import type { GlassNode } from "../src/core/types";
 
@@ -15,6 +15,15 @@ describe("signedRectGap", () => {
     const moving = node("a", 0);
     moving.pull.x = 16;
     expect(signedRectGap(moving, node("b", 120))).toBe(4);
+  });
+
+  it("turns readiness and snap strength into a bounded attraction offset", () => {
+    const active = node("a", 0);
+    const target = node("b", 120);
+
+    expect(calculateSnapOffset(active, target, 0, 1)).toEqual({ x: 0, y: 0 });
+    expect(calculateSnapOffset(active, target, 1, 0)).toEqual({ x: 0, y: 0 });
+    expect(calculateSnapOffset(active, target, 0.5, 0.5)).toEqual({ x: 4.5, y: 0 });
   });
 });
 

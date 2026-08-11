@@ -54,6 +54,10 @@
 .liquid-glass-node {
   --lg-pull-x: 0px;
   --lg-pull-y: 0px;
+  --lg-snap-x: 0px;
+  --lg-snap-y: 0px;
+  --lg-impact-x: 0px;
+  --lg-impact-y: 0px;
   --lg-scale-x: 1;
   --lg-scale-y: 1;
   --lg-rotate: 0deg;
@@ -87,13 +91,21 @@
 }
 
 .liquid-glass-node.is-liquid-interactive {
-  transform: translate3d(var(--lg-pull-x), var(--lg-pull-y), 0)
+  transform: translate3d(
+      calc(var(--lg-pull-x) + var(--lg-snap-x) + var(--lg-impact-x)),
+      calc(var(--lg-pull-y) + var(--lg-snap-y) + var(--lg-impact-y)),
+      0
+    )
     rotate(var(--lg-rotate)) scale(var(--lg-scale-x), var(--lg-scale-y));
   transform-origin: var(--lg-origin-x) var(--lg-origin-y);
   will-change: transform;
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
+}
+
+.liquid-glass-node.is-liquid-impacting {
+  filter: brightness(1.025) saturate(1.04);
 }
 
 .liquid-glass-node::before,

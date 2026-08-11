@@ -22,11 +22,11 @@ export interface InteractionOptions {
 export class InteractionEngine {
   readonly anchor: Readonly<Point>;
 
-  private readonly resistance: number;
-  private readonly rebound: number;
+  private resistance: number;
+  private rebound: number;
   private readonly threshold: number;
   private readonly dimension: number;
-  private readonly spring: Spring2D;
+  private spring: Spring2D;
   private startPointer: PointerSample | null = null;
   private startPull: Point = { x: 0, y: 0 };
   private pull: Point = { x: 0, y: 0 };
@@ -44,6 +44,20 @@ export class InteractionEngine {
   }
 
   get snapshot(): InteractionSnapshot {
+    return this.makeSnapshot(false);
+  }
+
+  configure(options: Pick<InteractionOptions, "dragResistance" | "rebound">): InteractionSnapshot {
+    const velocity = { x: this.spring.x.velocity, y: this.spring.y.velocity };
+    if (options.dragResistance !== undefined) {
+      this.resistance = Math.min(1, Math.max(0, options.dragResistance));
+    }
+    if (options.rebound !== undefined) {
+      this.rebound = Math.min(1, Math.max(0, options.rebound));
+      const dampingRatio = Math.max(0.72, 1 - this.rebound * 0.82);
+      this.spring = new Spring2D(0.34, dampingRatio);
+      this.spring.set(this.pull, velocity);
+    }
     return this.makeSnapshot(false);
   }
 
@@ -122,10 +136,13 @@ export class InteractionEngine {
   }
 
   private makeSnapshot(shouldClick: boolean): InteractionSnapshot {
+    const velocity = this.gesture === "pull"
+      ? estimateVelocity(this.samples)
+      : { x: this.spring.x.velocity, y: this.spring.y.velocity };
     return {
       anchor: this.anchor,
       pull: { ...this.pull },
-      velocity: { x: this.spring.x.velocity, y: this.spring.y.velocity },
+      velocity,
       gesture: this.gesture,
       shouldClick,
     };

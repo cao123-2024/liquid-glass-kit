@@ -20,6 +20,13 @@ export function estimateVelocity(samples: readonly PointerSample[]): Point {
   };
 }
 
+export function calculateImpactImpulse(velocity: Point, area: number, response: number): number {
+  if (response <= 0) return 0;
+  const speed = Math.hypot(velocity.x, velocity.y);
+  const sizeScale = Math.sqrt(12_000 / Math.max(1, area));
+  return Math.min(680, speed * Math.min(1, response) * sizeScale * 0.18);
+}
+
 export class SpringAxis {
   value = 0;
   velocity = 0;

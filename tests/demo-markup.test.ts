@@ -12,6 +12,9 @@ describe("component demo", () => {
     expect(html).toContain('data-setting="prepareDistance"');
     expect(html).toContain('data-setting="bridgeStrength"');
     expect(html).toContain('data-setting="viscosity"');
+    expect(html).toContain('data-setting="snapStrength"');
+    expect(html).toContain('data-setting="impactResponse"');
+    expect(html).toContain('data-setting="dragResistance"');
     expect(html).not.toContain("Move the glass");
   });
 

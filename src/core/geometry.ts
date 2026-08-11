@@ -37,3 +37,17 @@ export function directionBetween(first: GlassNode, second: GlassNode): Point {
   const length = Math.hypot(x, y) || 1;
   return { x: x / length, y: y / length };
 }
+
+export function calculateSnapOffset(
+  active: GlassNode,
+  target: GlassNode,
+  readiness: number,
+  strength: number,
+  maximumDistance = 18,
+): Point {
+  const amount = Math.min(1, Math.max(0, readiness))
+    * Math.min(1, Math.max(0, strength))
+    * maximumDistance;
+  const direction = directionBetween(active, target);
+  return { x: direction.x * amount, y: direction.y * amount };
+}

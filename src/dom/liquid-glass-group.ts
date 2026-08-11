@@ -1,8 +1,9 @@
 import { FusionController, type FusionSnapshot } from "../core/fusion-controller";
-import { presentedRect } from "../core/geometry";
+import { calculateSnapOffset, directionBetween, presentedRect } from "../core/geometry";
 import { InteractionEngine } from "../core/interaction-engine";
+import { calculateImpactImpulse, Spring2D } from "../core/physics";
 import { DEFAULT_SETTINGS, PRESETS, normalizeSettings } from "../core/settings";
-import type { GlassNode, LiquidGlassSettings, SettingsPresetName } from "../core/types";
+import type { GlassNode, LiquidGlassSettings, Point, SettingsPresetName } from "../core/types";
 import { MaterialRenderer, type MaterialNodeFrame, type MaterialRendererLike } from "./material-renderer";
 
 export interface RegisterOptions {
@@ -29,6 +30,10 @@ interface NodeRecord {
   suppressClick: boolean;
   shiftX: number;
   shiftY: number;
+  snap: Point;
+  snapTarget: Point;
+  impact: Point;
+  impactSpring: Spring2D;
 }
 
 const requestFrame = (callback: FrameRequestCallback): number => {
@@ -116,6 +121,10 @@ export class LiquidGlassGroup {
       suppressClick: false,
       shiftX: 0,
       shiftY: 0,
+      snap: { x: 0, y: 0 },
+      snapTarget: { x: 0, y: 0 },
+      impact: { x: 0, y: 0 },
+      impactSpring: new Spring2D(0.28, 0.7),
     };
     this.records.set(record.id, record);
     element.classList.add("liquid-glass-node");
@@ -138,6 +147,7 @@ export class LiquidGlassGroup {
 
   setSettings(settings: Partial<LiquidGlassSettings>): LiquidGlassSettings {
     this.currentSettings = normalizeSettings({ ...this.currentSettings, ...settings });
+    this.configureInteractionSettings();
     this.root.dataset.liquidGlassFusionEnabled = String(this.currentSettings.fusionEnabled);
     this.queueFrame();
     return { ...this.currentSettings };
@@ -145,6 +155,7 @@ export class LiquidGlassGroup {
 
   applyPreset(name: SettingsPresetName): LiquidGlassSettings {
     this.currentSettings = { ...PRESETS[name] };
+    this.configureInteractionSettings();
     this.root.dataset.liquidGlassPreset = name;
     this.root.dataset.liquidGlassFusionEnabled = String(this.currentSettings.fusionEnabled);
     this.queueFrame();
@@ -153,6 +164,7 @@ export class LiquidGlassGroup {
 
   resetSettings(): LiquidGlassSettings {
     this.currentSettings = { ...DEFAULT_SETTINGS };
+    this.configureInteractionSettings();
     delete this.root.dataset.liquidGlassPreset;
     this.root.dataset.liquidGlassFusionEnabled = "false";
     this.queueFrame();
@@ -240,6 +252,15 @@ export class LiquidGlassGroup {
     );
   }
 
+  private configureInteractionSettings(): void {
+    for (const record of this.records.values()) {
+      record.engine.configure({
+        dragResistance: this.currentSettings.dragResistance,
+        rebound: this.currentSettings.rebound,
+      });
+    }
+  }
+
   private queueFrame(): void {
     if (this.destroyed || this.frameHandle !== null) return;
     this.frameHandle = requestFrame((time) => this.renderFrame(time));
@@ -251,21 +272,34 @@ export class LiquidGlassGroup {
     const delta = Math.min(1 / 20, Math.max(0, (time - this.lastFrameTime) / 1000));
     this.lastFrameTime = time;
     let returning = false;
+    let materialMotion = false;
     for (const record of this.records.values()) {
       if (record.engine.snapshot.gesture === "returning") {
         record.engine.step(delta);
-        this.applyPresentation(record);
       }
+      if (!record.impactSpring.settled) record.impact = record.impactSpring.step(delta);
+      const snapProgress = 1 - Math.exp(-delta * 24);
+      record.snap.x += (record.snapTarget.x - record.snap.x) * snapProgress;
+      record.snap.y += (record.snapTarget.y - record.snap.y) * snapProgress;
+      if (Math.abs(record.snapTarget.x - record.snap.x) < 0.01) record.snap.x = record.snapTarget.x;
+      if (Math.abs(record.snapTarget.y - record.snap.y) < 0.01) record.snap.y = record.snapTarget.y;
+      this.applyPresentation(record);
       returning ||= record.engine.snapshot.gesture === "returning";
+      materialMotion ||= !record.impactSpring.settled
+        || Math.abs(record.snapTarget.x - record.snap.x) >= 0.01
+        || Math.abs(record.snapTarget.y - record.snap.y) >= 0.01;
     }
 
-    const nodes = this.collectNodes();
+    let nodes = this.collectNodes();
+    const previousFusion = this.fusion.snapshot;
     const fusion = this.fusion.update({
       activeId: this.activeId,
       returning,
       nodes,
       settings: this.currentSettings,
     });
+    this.updateFusionPhysics(previousFusion, fusion, nodes);
+    nodes = this.collectNodes();
     this.root.dataset.liquidGlassPhase = fusion.phase;
     this.updateFusionClasses(fusion);
     this.updateBridge(fusion, nodes);
@@ -285,7 +319,7 @@ export class LiquidGlassGroup {
       time,
     });
 
-    if (returning || this.activeId !== null) this.queueFrame();
+    if (returning || materialMotion || this.activeId !== null) this.queueFrame();
   }
 
   private collectNodes(): GlassNode[] {
@@ -298,13 +332,16 @@ export class LiquidGlassGroup {
         id: record.id,
         fusion: record.fusion,
         rect: {
-          x: bounds.left - rootBounds.left - record.shiftX,
-          y: bounds.top - rootBounds.top - record.shiftY,
+          x: bounds.left - rootBounds.left - record.shiftX - record.snap.x - record.impact.x,
+          y: bounds.top - rootBounds.top - record.shiftY - record.snap.y - record.impact.y,
           width,
           height,
           radius: Math.min(record.radius, width / 2, height / 2),
         },
-        pull: { x: record.shiftX, y: record.shiftY },
+        pull: {
+          x: record.shiftX + record.snap.x + record.impact.x,
+          y: record.shiftY + record.snap.y + record.impact.y,
+        },
       };
     });
   }
@@ -322,6 +359,11 @@ export class LiquidGlassGroup {
     const squeezeY = 1 - Math.min(0.055, Math.abs(snapshot.pull.x) / width * 0.035);
     record.element.style.setProperty("--lg-pull-x", `${record.shiftX.toFixed(3)}px`);
     record.element.style.setProperty("--lg-pull-y", `${record.shiftY.toFixed(3)}px`);
+    record.element.style.setProperty("--lg-snap-x", `${record.snap.x.toFixed(3)}px`);
+    record.element.style.setProperty("--lg-snap-y", `${record.snap.y.toFixed(3)}px`);
+    record.element.style.setProperty("--lg-impact-x", `${record.impact.x.toFixed(3)}px`);
+    record.element.style.setProperty("--lg-impact-y", `${record.impact.y.toFixed(3)}px`);
+    record.element.classList.toggle("is-liquid-impacting", !record.impactSpring.settled);
     record.element.style.setProperty("--lg-scale-x", (stretchX * squeezeX).toFixed(4));
     record.element.style.setProperty("--lg-scale-y", (stretchY * squeezeY).toFixed(4));
     record.element.style.setProperty(
@@ -337,6 +379,55 @@ export class LiquidGlassGroup {
       const paired = pair?.has(record.id) ?? false;
       record.element.classList.toggle("is-liquid-fusion-pair", paired);
       record.element.style.setProperty("--lg-fusion-readiness", String(paired ? snapshot.readiness : 0));
+    }
+  }
+
+  private updateFusionPhysics(
+    previous: FusionSnapshot,
+    current: FusionSnapshot,
+    nodes: readonly GlassNode[],
+  ): void {
+    for (const record of this.records.values()) record.snapTarget = { x: 0, y: 0 };
+    if (!current.pair) return;
+
+    const activeNode = nodes.find((node) => node.id === current.pair![0]);
+    const targetNode = nodes.find((node) => node.id === current.pair![1]);
+    const activeRecord = this.records.get(current.pair[0]);
+    const targetRecord = this.records.get(current.pair[1]);
+    if (!activeNode || !targetNode || !activeRecord || !targetRecord) return;
+
+    if (activeRecord.interactive) {
+      activeRecord.snapTarget = calculateSnapOffset(
+        activeNode,
+        targetNode,
+        current.readiness,
+        this.currentSettings.snapStrength,
+      );
+    }
+
+    const samePair = previous.pair?.[0] === current.pair[0] && previous.pair?.[1] === current.pair[1];
+    if (current.phase !== "fused" || (previous.phase === "fused" && samePair)) return;
+
+    const direction = directionBetween(activeNode, targetNode);
+    const targetArea = targetNode.rect.width * targetNode.rect.height;
+    const impulse = calculateImpactImpulse(
+      activeRecord.engine.snapshot.velocity,
+      targetArea,
+      this.currentSettings.impactResponse,
+    );
+    if (impulse <= 0) return;
+
+    if (targetRecord.interactive) {
+      targetRecord.impactSpring.set(targetRecord.impact, {
+        x: direction.x * impulse,
+        y: direction.y * impulse,
+      });
+    }
+    if (activeRecord.interactive) {
+      activeRecord.impactSpring.set(activeRecord.impact, {
+        x: -direction.x * impulse * 0.36,
+        y: -direction.y * impulse * 0.36,
+      });
     }
   }
 
@@ -373,6 +464,7 @@ export class LiquidGlassGroup {
       "is-liquid-pressed",
       "is-liquid-pulling",
       "is-liquid-fusion-pair",
+      "is-liquid-impacting",
     );
     delete element.dataset.liquidGlassId;
     delete element.dataset.liquidGlassFusion;
@@ -382,6 +474,10 @@ export class LiquidGlassGroup {
       "--lg-origin-y",
       "--lg-pull-x",
       "--lg-pull-y",
+      "--lg-snap-x",
+      "--lg-snap-y",
+      "--lg-impact-x",
+      "--lg-impact-y",
       "--lg-scale-x",
       "--lg-scale-y",
       "--lg-rotate",
