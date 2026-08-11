@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 const projectRoot = resolve(import.meta.dirname, "..");
 const packageJson = JSON.parse(readFileSync(resolve(projectRoot, "package.json"), "utf8")) as {
   exports: Record<string, unknown>;
+  files: string[];
   scripts: { build: string };
 };
 
@@ -20,5 +21,6 @@ describe("package contract", () => {
     expect(packageJson.exports).toHaveProperty(".");
     expect(packageJson.exports).toHaveProperty("./react");
     expect(packageJson.exports).toHaveProperty("./styles.css");
+    expect(packageJson.files).toContain("docs");
   });
 });
