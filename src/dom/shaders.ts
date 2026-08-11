@@ -10,6 +10,7 @@ export const fragmentShaderSource = `#version 300 es
 precision highp float;
 
 uniform vec2 u_resolution;
+uniform float u_pixel_ratio;
 uniform vec4 u_rect_a;
 uniform vec4 u_rect_b;
 uniform vec2 u_radius;
@@ -38,12 +39,12 @@ float material_field(vec2 point) {
   float first = sd_round_box(point - u_rect_a.xy, u_rect_a.zw, u_radius.x);
   if (u_pair < 0.5) return first;
   float second = sd_round_box(point - u_rect_b.xy, u_rect_b.zw, u_radius.y);
-  float union_amount = mix(1.0, 56.0, u_material.x * u_material.y * u_material.z);
+  float union_amount = mix(1.0, 56.0, u_material.x * u_material.y * u_material.z) * u_pixel_ratio;
   return smooth_union(first, second, union_amount);
 }
 
 vec2 field_normal(vec2 point) {
-  const float epsilon = 1.45;
+  float epsilon = 1.45 * u_pixel_ratio;
   float horizontal = material_field(point + vec2(epsilon, 0.0)) - material_field(point - vec2(epsilon, 0.0));
   float vertical = material_field(point + vec2(0.0, epsilon)) - material_field(point - vec2(0.0, epsilon));
   return normalize(vec2(horizontal, vertical) + vec2(0.0001));
@@ -52,14 +53,14 @@ vec2 field_normal(vec2 point) {
 void main() {
   vec2 point = vec2(gl_FragCoord.x, u_resolution.y - gl_FragCoord.y);
   float field = material_field(point);
-  if (field > 34.0) discard;
+  if (field > 34.0 * u_pixel_ratio) discard;
 
   vec2 normal = field_normal(point);
   float inside_depth = max(0.0, -field);
-  float shape_mask = 1.0 - smoothstep(-1.2, 1.2, field);
-  float outer_shadow = (1.0 - smoothstep(3.0, 28.0, field)) * (1.0 - shape_mask);
-  float edge = shape_mask * (1.0 - smoothstep(2.0, 25.0, inside_depth));
-  float fine_rim = 1.0 - smoothstep(0.15, 2.2, abs(field));
+  float shape_mask = 1.0 - smoothstep(-1.2, 1.2, field / u_pixel_ratio);
+  float outer_shadow = (1.0 - smoothstep(3.0, 28.0, field / u_pixel_ratio)) * (1.0 - shape_mask);
+  float edge = shape_mask * (1.0 - smoothstep(2.0, 25.0, inside_depth / u_pixel_ratio));
+  float fine_rim = 1.0 - smoothstep(0.15, 2.2, abs(field) / u_pixel_ratio);
 
   // Layer 01 · Background: the DOM surface keeps the live page visible;
   // this transparent shader pass only modulates light over that environment.

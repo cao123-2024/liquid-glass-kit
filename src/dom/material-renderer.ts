@@ -24,6 +24,7 @@ export interface MaterialRendererLike {
 
 type Uniforms = {
   resolution: WebGLUniformLocation;
+  pixelRatio: WebGLUniformLocation;
   rectA: WebGLUniformLocation;
   rectB: WebGLUniformLocation;
   radius: WebGLUniformLocation;
@@ -84,7 +85,8 @@ export class MaterialRenderer implements MaterialRendererLike {
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.useProgram(this.program);
-    gl.uniform2f(this.uniforms.resolution, frame.width, frame.height);
+    gl.uniform2f(this.uniforms.resolution, this.canvas.width, this.canvas.height);
+    gl.uniform1f(this.uniforms.pixelRatio, this.pixelRatio);
     gl.uniform1f(this.uniforms.time, frame.time);
     gl.uniform4f(
       this.uniforms.material,
@@ -117,11 +119,11 @@ export class MaterialRenderer implements MaterialRendererLike {
   private draw(first: MaterialNodeFrame, second: MaterialNodeFrame | null): void {
     const gl = this.gl!;
     const uniforms = this.uniforms!;
-    const a = toShaderRect(first.rect);
-    const b = second ? toShaderRect(second.rect) : a;
+    const a = scaleMaterialRect(first.rect, this.pixelRatio);
+    const b = second ? scaleMaterialRect(second.rect, this.pixelRatio) : a;
     gl.uniform4f(uniforms.rectA, a.x, a.y, a.halfWidth, a.halfHeight);
     gl.uniform4f(uniforms.rectB, b.x, b.y, b.halfWidth, b.halfHeight);
-    gl.uniform2f(uniforms.radius, first.rect.radius, second?.rect.radius ?? first.rect.radius);
+    gl.uniform2f(uniforms.radius, a.radius, b.radius);
     gl.uniform1f(uniforms.pair, second ? 1 : 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
@@ -135,7 +137,6 @@ export class MaterialRenderer implements MaterialRendererLike {
       this.canvas.style.width = `${width}px`;
       this.canvas.style.height = `${height}px`;
     }
-    this.gl?.uniform2f(this.uniforms!.resolution, width, height);
   }
 
   private configurePipeline(): void {
@@ -199,6 +200,7 @@ export class MaterialRenderer implements MaterialRendererLike {
     };
     return {
       resolution: required("u_resolution"),
+      pixelRatio: required("u_pixel_ratio"),
       rectA: required("u_rect_a"),
       rectB: required("u_rect_b"),
       radius: required("u_radius"),
@@ -209,11 +211,15 @@ export class MaterialRenderer implements MaterialRendererLike {
   }
 }
 
-function toShaderRect(rect: Rect): { x: number; y: number; halfWidth: number; halfHeight: number } {
+export function scaleMaterialRect(
+  rect: Rect,
+  pixelRatio: number,
+): { x: number; y: number; halfWidth: number; halfHeight: number; radius: number } {
   return {
-    x: rect.x + rect.width / 2,
-    y: rect.y + rect.height / 2,
-    halfWidth: rect.width / 2,
-    halfHeight: rect.height / 2,
+    x: (rect.x + rect.width / 2) * pixelRatio,
+    y: (rect.y + rect.height / 2) * pixelRatio,
+    halfWidth: (rect.width / 2) * pixelRatio,
+    halfHeight: (rect.height / 2) * pixelRatio,
+    radius: rect.radius * pixelRatio,
   };
 }
