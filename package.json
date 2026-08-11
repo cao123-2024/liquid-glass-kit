@@ -3,6 +3,14 @@
   "version": "1.0.0",
   "description": "Seven-layer liquid glass material with fixed-anchor pull physics and opt-in fusion.",
   "license": "MIT",
+  "homepage": "https://github.com/cao123-2024/liquid-glass-kit#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cao123-2024/liquid-glass-kit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cao123-2024/liquid-glass-kit/issues"
+  },
   "type": "module",
   "sideEffects": [
     "**/*.css"
