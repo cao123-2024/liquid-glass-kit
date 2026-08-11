@@ -144,6 +144,42 @@ describe("LiquidGlassGroup", () => {
     group.destroy();
     root.remove();
   });
+
+  it("preserves fusion mode when applying a material preset", () => {
+    const root = document.createElement("section");
+    document.body.append(root);
+    const renderer: MaterialRendererLike = { render: vi.fn(), destroy: vi.fn() };
+    const group = new LiquidGlassGroup(root, { renderer, settings: { fusionEnabled: true } });
+
+    group.applyPreset("viscous");
+
+    expect(group.settings.fusionEnabled).toBe(true);
+    expect(group.settings.viscosity).toBeGreaterThan(0.8);
+    group.destroy();
+    root.remove();
+  });
+
+  it("excludes hidden catalogue items from material rendering and fusion", async () => {
+    const root = document.createElement("section");
+    const visible = document.createElement("button");
+    const hidden = document.createElement("button");
+    hidden.hidden = true;
+    root.append(visible, hidden);
+    document.body.append(root);
+    const render = vi.fn<MaterialRendererLike["render"]>();
+    const renderer: MaterialRendererLike = { render, destroy: vi.fn() };
+    const group = new LiquidGlassGroup(root, { renderer, settings: { fusionEnabled: true } });
+    group.register(visible, { id: "visible" });
+    group.register(hidden, { id: "hidden" });
+
+    await waitForFrames(2);
+
+    const lastFrame = render.mock.calls.at(-1)?.[0];
+    expect(lastFrame?.nodes.map((node) => node.id)).toEqual(["visible"]);
+    expect(group.fusionSnapshot.pair).toBeNull();
+    group.destroy();
+    root.remove();
+  });
 });
 
 function pointerEvent(type: string, clientX: number, clientY: number, timeStamp?: number): PointerEvent {

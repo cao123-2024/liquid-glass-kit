@@ -20,7 +20,7 @@
         <div class="runtime-status" role="status" aria-live="polite">
           <i></i><span data-runtime-status>融合关闭 · 各组件保持独立</span>
         </div>
-        <button class="quiet-action" type="button" data-liquid-id="command" aria-label="打开命令面板">
+        <button class="quiet-action" type="button" data-liquid-id="command" data-action="command" aria-label="定位组件搜索">
           <svg viewBox="0 0 24 24" role="img" aria-label="命令图标"><path d="M7 4v16M4 7h6M4 17h6M17 4v16M14 7h6M14 17h6" /></svg>
           <span>Command</span><kbd>⌘ K</kbd>
         </button>
@@ -37,7 +37,7 @@
           <article class="surface-card media-card liquid-panel" data-liquid-id="media-panel">
             <header class="card-heading">
               <span class="micro-label">NOW PLAYING</span>
-              <button class="round-control" type="button" data-liquid-id="more" aria-label="更多播放选项">
+              <button class="round-control" type="button" data-liquid-id="more" data-action="more" aria-label="更多播放选项">
                 <svg viewBox="0 0 24 24" role="img" aria-label="更多图标"><circle cx="5" cy="12" r="1.4" /><circle cx="12" cy="12" r="1.4" /><circle cx="19" cy="12" r="1.4" /></svg>
               </button>
             </header>
@@ -48,13 +48,13 @@
             </div>
             <div class="waveform" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
             <div class="transport" aria-label="媒体播放控制">
-              <button class="round-control" type="button" data-liquid-id="previous" aria-label="上一首">
+              <button class="round-control" type="button" data-liquid-id="previous" data-action="track" data-direction="-1" aria-label="上一首">
                 <svg viewBox="0 0 24 24" role="img" aria-label="上一首图标"><path d="M6.5 5v14M18 6.5 9.5 12l8.5 5.5z" /></svg>
               </button>
               <button class="play-control" type="button" data-liquid-id="play" data-action="play" aria-label="播放">
                 <svg viewBox="0 0 24 24" role="img" aria-label="播放图标" data-play-icon><path d="m9 6 9 6-9 6z" /></svg>
               </button>
-              <button class="round-control" type="button" data-liquid-id="next" aria-label="下一首">
+              <button class="round-control" type="button" data-liquid-id="next" data-action="track" data-direction="1" aria-label="下一首">
                 <svg viewBox="0 0 24 24" role="img" aria-label="下一首图标"><path d="M17.5 5v14M6 6.5l8.5 5.5L6 17.5z" /></svg>
               </button>
             </div>
@@ -83,8 +83,54 @@
             </div>
             <label class="brightness-control" data-liquid-glass-static>
               <span><svg viewBox="0 0 24 24" role="img" aria-label="亮度图标"><circle cx="12" cy="12" r="3.5" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" /></svg> Display</span>
-              <input type="range" min="10" max="100" value="74" aria-label="屏幕亮度" />
+              <input type="range" min="10" max="100" value="74" data-action="brightness" aria-label="屏幕亮度" />
+              <output data-brightness-output>74</output>
             </label>
+          </article>
+
+          <article class="surface-card catalogue-card liquid-panel" data-liquid-id="catalogue-panel">
+            <header class="card-heading">
+              <div><span class="micro-label">COMPONENT INDEX</span><h2>组件目录</h2></div>
+              <span class="catalogue-count" data-catalogue-count>4 items</span>
+            </header>
+            <label class="component-search" data-liquid-glass-static>
+              <svg viewBox="0 0 24 24" role="img" aria-label="搜索图标"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m15.5 15.5 4 4" /></svg>
+              <input type="search" placeholder="搜索按钮、输入框、状态…" aria-label="搜索组件" data-component-search />
+              <kbd>⌘ K</kbd>
+            </label>
+            <div class="catalogue-tabs" role="tablist" aria-label="组件分类" data-liquid-glass-static>
+              <button type="button" role="tab" aria-selected="true" class="is-selected" data-action="catalogue-tab" data-filter="all">全部</button>
+              <button type="button" role="tab" aria-selected="false" data-action="catalogue-tab" data-filter="control">控制</button>
+              <button type="button" role="tab" aria-selected="false" data-action="catalogue-tab" data-filter="status">状态</button>
+            </div>
+            <div class="catalogue-list">
+              <button class="catalogue-item" type="button" data-liquid-id="catalogue-button" data-action="catalogue-preview" data-kind="control" data-search="button primary action 按钮 操作">
+                <span><svg viewBox="0 0 24 24" role="img" aria-label="按钮图标"><rect x="3" y="6" width="18" height="12" rx="6" /><path d="M9 12h6" /></svg></span><b>Action button</b><small>PRESS / PULL</small>
+              </button>
+              <button class="catalogue-item" type="button" data-liquid-id="catalogue-input" data-action="catalogue-preview" data-kind="control" data-search="input search text 输入 搜索">
+                <span><svg viewBox="0 0 24 24" role="img" aria-label="输入框图标"><rect x="3" y="5" width="18" height="14" rx="4" /><path d="M7 12h7" /></svg></span><b>Input field</b><small>FOCUS / TYPE</small>
+              </button>
+              <button class="catalogue-item" type="button" data-liquid-id="catalogue-toggle" data-action="catalogue-preview" data-kind="control" data-search="toggle switch 开关 切换">
+                <span><svg viewBox="0 0 24 24" role="img" aria-label="开关图标"><rect x="3" y="7" width="18" height="10" rx="5" /><circle cx="15.5" cy="12" r="3" /></svg></span><b>Toggle switch</b><small>ON / OFF</small>
+              </button>
+              <button class="catalogue-item" type="button" data-liquid-id="catalogue-badge" data-action="catalogue-preview" data-kind="status" data-search="badge status notification 徽标 状态 通知">
+                <span><svg viewBox="0 0 24 24" role="img" aria-label="状态图标"><circle cx="12" cy="12" r="8" /><path d="m8.5 12 2.2 2.2 4.8-5" /></svg></span><b>Status badge</b><small>LIVE / READY</small>
+              </button>
+            </div>
+            <p class="catalogue-empty" data-catalogue-empty hidden>没有匹配的组件</p>
+          </article>
+
+          <article class="surface-card session-card liquid-panel" data-liquid-id="session-panel">
+            <header class="card-heading"><span class="micro-label">FOCUS SESSION</span><span class="session-time">24:18</span></header>
+            <div class="session-overview">
+              <div class="session-orbit" style="--session-progress: 68" data-session-orbit><span><b data-session-output>68%</b><small>完成度</small></span></div>
+              <div class="session-copy"><h2>Design handoff</h2><p>把关键交互整理成可复用规范。</p><button class="pill-control" type="button" data-liquid-id="session-toggle" data-action="session-toggle" aria-pressed="false">开始专注</button></div>
+            </div>
+            <label class="session-slider" data-liquid-glass-static><span>进度</span><input type="range" min="0" max="100" value="68" data-action="session-progress" aria-label="专注任务进度" /></label>
+            <div class="task-list" aria-label="任务清单">
+              <button type="button" role="checkbox" aria-checked="true" class="task-row is-done" data-liquid-id="task-material" data-action="task"><i><svg viewBox="0 0 24 24" role="img" aria-label="已完成图标"><path d="m6 12 4 4 8-9" /></svg></i><span><b>Material pass</b><small>7 layers calibrated</small></span></button>
+              <button type="button" role="checkbox" aria-checked="false" class="task-row" data-liquid-id="task-motion" data-action="task"><i><svg viewBox="0 0 24 24" role="img" aria-label="待完成图标"><path d="m6 12 4 4 8-9" /></svg></i><span><b>Motion pass</b><small>Spring and impact</small></span></button>
+            </div>
           </article>
 
           <article class="surface-card notice-card liquid-panel" data-liquid-id="notice-panel">
@@ -94,6 +140,14 @@
             <div class="notice-copy"><span>UP NEXT · 19:00</span><h2>Design Systems Review</h2><p>Studio 2B · 4 participants</p></div>
             <button class="pill-control" type="button" data-liquid-id="join" data-action="join">Join room</button>
           </article>
+
+          <nav class="glass-dock" aria-label="演示页面导航" data-liquid-id="navigation-dock">
+            <button type="button" aria-current="page" data-liquid-id="dock-home" data-action="dock" data-view="首页" aria-label="首页"><svg viewBox="0 0 24 24" role="img" aria-label="首页图标"><path d="m4 11 8-7 8 7v9h-6v-6h-4v6H4z" /></svg><span>Home</span></button>
+            <button type="button" data-liquid-id="dock-library" data-action="dock" data-view="组件库" aria-label="组件库"><svg viewBox="0 0 24 24" role="img" aria-label="组件库图标"><rect x="4" y="4" width="6" height="6" rx="2" /><rect x="14" y="4" width="6" height="6" rx="2" /><rect x="4" y="14" width="6" height="6" rx="2" /><rect x="14" y="14" width="6" height="6" rx="2" /></svg><span>Library</span></button>
+            <button class="dock-primary" type="button" data-liquid-id="dock-create" data-action="dock" data-view="新建组件" aria-label="新建组件"><svg viewBox="0 0 24 24" role="img" aria-label="新建图标"><path d="M12 5v14M5 12h14" /></svg></button>
+            <button type="button" data-liquid-id="dock-activity" data-action="dock" data-view="活动" aria-label="活动"><svg viewBox="0 0 24 24" role="img" aria-label="活动图标"><path d="M4 14h3l2-7 4 11 2-7h5" /></svg><span>Activity</span></button>
+            <button type="button" data-liquid-id="dock-profile" data-action="dock" data-view="个人资料" aria-label="个人资料"><svg viewBox="0 0 24 24" role="img" aria-label="个人资料图标"><circle cx="12" cy="8" r="4" /><path d="M4.5 20a7.5 7.5 0 0 1 15 0" /></svg><span>Profile</span></button>
+          </nav>
         </section>
 
         <aside class="settings-card liquid-panel" data-liquid-id="settings-panel" aria-labelledby="settings-title">
@@ -130,6 +184,8 @@
           </div>
         </aside>
       </section>
+
+      <div class="toast-region" role="status" aria-live="polite" data-toast-region></div>
 
       <footer class="page-footer"><span>Pointer Events / WebGL2 / React 19</span><span>Fixed anchors · Opt-in topology</span></footer>
     </main>

@@ -154,7 +154,10 @@ export class LiquidGlassGroup {
   }
 
   applyPreset(name: SettingsPresetName): LiquidGlassSettings {
-    this.currentSettings = { ...PRESETS[name] };
+    this.currentSettings = {
+      ...PRESETS[name],
+      fusionEnabled: this.currentSettings.fusionEnabled,
+    };
     this.configureInteractionSettings();
     this.root.dataset.liquidGlassPreset = name;
     this.root.dataset.liquidGlassFusionEnabled = String(this.currentSettings.fusionEnabled);
@@ -324,26 +327,28 @@ export class LiquidGlassGroup {
 
   private collectNodes(): GlassNode[] {
     const rootBounds = this.root.getBoundingClientRect();
-    return [...this.records.values()].map((record) => {
-      const bounds = record.element.getBoundingClientRect();
-      const width = bounds.width || record.element.offsetWidth || 1;
-      const height = bounds.height || record.element.offsetHeight || 1;
-      return {
-        id: record.id,
-        fusion: record.fusion,
-        rect: {
-          x: bounds.left - rootBounds.left - record.shiftX - record.snap.x - record.impact.x,
-          y: bounds.top - rootBounds.top - record.shiftY - record.snap.y - record.impact.y,
-          width,
-          height,
-          radius: Math.min(record.radius, width / 2, height / 2),
-        },
-        pull: {
-          x: record.shiftX + record.snap.x + record.impact.x,
-          y: record.shiftY + record.snap.y + record.impact.y,
-        },
-      };
-    });
+    return [...this.records.values()]
+      .filter((record) => record.element.isConnected && record.element.closest("[hidden]") === null)
+      .map((record) => {
+        const bounds = record.element.getBoundingClientRect();
+        const width = bounds.width || record.element.offsetWidth || 1;
+        const height = bounds.height || record.element.offsetHeight || 1;
+        return {
+          id: record.id,
+          fusion: record.fusion,
+          rect: {
+            x: bounds.left - rootBounds.left - record.shiftX - record.snap.x - record.impact.x,
+            y: bounds.top - rootBounds.top - record.shiftY - record.snap.y - record.impact.y,
+            width,
+            height,
+            radius: Math.min(record.radius, width / 2, height / 2),
+          },
+          pull: {
+            x: record.shiftX + record.snap.x + record.impact.x,
+            y: record.shiftY + record.snap.y + record.impact.y,
+          },
+        };
+      });
   }
 
   private applyPresentation(record: NodeRecord): void {

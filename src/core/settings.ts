@@ -48,12 +48,23 @@ function finiteOrDefault(value: unknown, fallback: number, minimum: number, maxi
 
 export function normalizeSettings(input: UnknownSettings | null | undefined): LiquidGlassSettings {
   const value = input && typeof input === "object" && !Array.isArray(input) ? input : {};
+  const prepareDistance = finiteOrDefault(
+    value.prepareDistance,
+    DEFAULT_SETTINGS.prepareDistance,
+    0,
+    160,
+  );
 
   return {
     fusionEnabled:
       typeof value.fusionEnabled === "boolean" ? value.fusionEnabled : DEFAULT_SETTINGS.fusionEnabled,
-    prepareDistance: finiteOrDefault(value.prepareDistance, DEFAULT_SETTINGS.prepareDistance, 0, 160),
-    contactDistance: finiteOrDefault(value.contactDistance, DEFAULT_SETTINGS.contactDistance, 0, 160),
+    prepareDistance,
+    contactDistance: finiteOrDefault(
+      value.contactDistance,
+      Math.min(DEFAULT_SETTINGS.contactDistance, prepareDistance),
+      0,
+      prepareDistance,
+    ),
     bridgeStrength: finiteOrDefault(value.bridgeStrength, DEFAULT_SETTINGS.bridgeStrength, 0, 1),
     viscosity: finiteOrDefault(value.viscosity, DEFAULT_SETTINGS.viscosity, 0, 1),
     snapStrength: finiteOrDefault(value.snapStrength, DEFAULT_SETTINGS.snapStrength, 0, 1),

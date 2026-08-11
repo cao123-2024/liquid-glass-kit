@@ -32,6 +32,13 @@ describe("normalizeSettings", () => {
     expect(result).toEqual(DEFAULT_SETTINGS);
   });
 
+  it("keeps contact distance inside the preparation range", () => {
+    const result = normalizeSettings({ prepareDistance: 18, contactDistance: 80 });
+
+    expect(result.prepareDistance).toBe(18);
+    expect(result.contactDistance).toBe(18);
+  });
+
   it("provides complete immutable presets", () => {
     expect(PRESETS.balanced).toEqual(DEFAULT_SETTINGS);
     expect(PRESETS.soft.fusionEnabled).toBe(false);

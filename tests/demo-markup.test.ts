@@ -31,4 +31,15 @@ describe("component demo", () => {
     expect(html).toContain('type="range"');
     expect(html).toContain('role="status"');
   });
+
+  it("includes a complete interactive component catalogue", () => {
+    expect(html).toContain('data-component-search');
+    expect(html).toContain('role="tablist"');
+    expect(html).toContain('aria-selected="true"');
+    expect(html).toContain('data-action="task"');
+    expect(html).toContain('data-action="session-progress"');
+    expect(html).toContain('class="glass-dock"');
+    expect(html).toContain('data-toast-region');
+    expect(html).toContain('data-brightness-output');
+  });
 });

@@ -15,6 +15,8 @@ The default is safe for real interfaces: fusion is off, nearby controls stay sep
 - High-DPI WebGL coordinate correction.
 - Static material mode for host applications that already own `transform`, such as eIsland.
 - DOM API, React 19 adapter, TypeScript declarations, production builds, and an offline demo.
+- A complete responsive control-surface demo with media controls, switches, search and tabs, tasks,
+  progress, notifications, navigation, live material tuning, presets, and one-click reset.
 
 ## Run the demo
 
@@ -82,6 +84,8 @@ if (root && button) {
 | `dragResistance` | `0.55` | Resistance during fixed-anchor pull. |
 
 Use `applyPreset("soft" | "balanced" | "viscous")`, `setSettings(...)`, or `resetSettings()` on the DOM runtime. The React adapter also provides `useLiquidGlassSettings()`.
+
+Presets change the material character without changing the current fusion on/off choice. Values are normalized at runtime, including keeping `contactDistance` within `prepareDistance`; hidden catalogue items are removed from material rendering and fusion targeting.
 
 ## eIsland 26.7.2
 
