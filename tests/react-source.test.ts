@@ -12,6 +12,7 @@ describe("React adapter source contract", () => {
     expect(provider).toContain("useLayoutEffect");
     expect(provider).toContain("runtime.destroy()");
     expect(provider).toContain("new LiquidGlassRuntime");
+    expect(provider).toContain("onRuntimeReadyRef");
   });
 
   it("registers rendered DOM while forwarding children, events, and refs", () => {

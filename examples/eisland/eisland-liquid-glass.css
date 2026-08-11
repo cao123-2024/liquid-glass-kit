@@ -1,0 +1,18 @@
+.eisland-liquid-root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.eisland-liquid-root > .island-shell.liquid-glass-node {
+  background-color: rgba(218, 234, 240, 0.075);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+[data-theme="light"] .eisland-liquid-root > .island-shell.liquid-glass-node {
+  color: #1a1c23;
+  background-color: rgba(255, 255, 255, 0.46);
+  border-color: rgba(255, 255, 255, 0.58);
+}

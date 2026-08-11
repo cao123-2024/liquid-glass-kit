@@ -69,6 +69,25 @@ describe("LiquidGlassGroup", () => {
     group.destroy();
     root.remove();
   });
+
+  it("can render material without taking over the host transform or pointer gestures", () => {
+    const root = document.createElement("section");
+    const shell = document.createElement("div");
+    root.append(shell);
+    document.body.append(root);
+    const renderer: MaterialRendererLike = { render: vi.fn(), destroy: vi.fn() };
+    const group = new LiquidGlassGroup(root, { renderer });
+
+    group.register(shell, { id: "eisland-shell", fusion: false, interactive: false });
+    shell.dispatchEvent(pointerEvent("pointerdown", 0, 0));
+    shell.dispatchEvent(pointerEvent("pointermove", 40, 0));
+
+    expect(shell.classList.contains("liquid-glass-node")).toBe(true);
+    expect(shell.classList.contains("is-liquid-interactive")).toBe(false);
+    expect(shell.dataset.liquidGlassGesture).toBeUndefined();
+    group.destroy();
+    root.remove();
+  });
 });
 
 function pointerEvent(type: string, clientX: number, clientY: number): PointerEvent {

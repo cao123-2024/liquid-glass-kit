@@ -16,6 +16,7 @@ type LiquidGlassOwnProps<T extends ElementType> = {
   as?: T;
   glassId: string;
   fusion?: boolean;
+  interactive?: boolean;
   radius?: number;
 };
 
@@ -30,12 +31,13 @@ interface LiquidGlassImplementationProps extends HTMLAttributes<HTMLElement> {
   as?: ElementType;
   glassId: string;
   fusion?: boolean;
+  interactive?: boolean;
   radius?: number;
   type?: string;
 }
 
 function LiquidGlassInner(
-  { as, glassId, fusion = true, radius, children, ...elementProps }: LiquidGlassImplementationProps,
+  { as, glassId, fusion = true, interactive = true, radius, children, ...elementProps }: LiquidGlassImplementationProps,
   forwardedRef: ForwardedRef<HTMLElement>,
 ) {
   const runtime = useLiquidGlassRuntime();
@@ -44,8 +46,8 @@ function LiquidGlassInner(
 
   useLayoutEffect(() => {
     if (!runtime || !(localRef.current instanceof HTMLElement)) return;
-    return runtime.register(localRef.current, { id: glassId, fusion, radius });
-  }, [runtime, glassId, fusion, radius]);
+    return runtime.register(localRef.current, { id: glassId, fusion, interactive, radius });
+  }, [runtime, glassId, fusion, interactive, radius]);
 
   const attachRef = (node: HTMLElement | null): void => {
     localRef.current = node;

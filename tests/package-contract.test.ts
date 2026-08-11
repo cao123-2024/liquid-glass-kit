@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 const projectRoot = resolve(import.meta.dirname, "..");
 const packageJson = JSON.parse(readFileSync(resolve(projectRoot, "package.json"), "utf8")) as {
   exports: Record<string, unknown>;
-  scripts: Record<string, string>;
+  scripts: { build: string };
 };
 
 describe("package contract", () => {

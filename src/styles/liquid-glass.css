@@ -84,6 +84,9 @@
     0 31px 46px rgba(2, 12, 20, 0.03),
     0 41px 64px rgba(2, 12, 20, 0.025),
     0 54px 86px rgba(2, 12, 20, 0.02);
+}
+
+.liquid-glass-node.is-liquid-interactive {
   transform: translate3d(var(--lg-pull-x), var(--lg-pull-y), 0)
     rotate(var(--lg-rotate)) scale(var(--lg-scale-x), var(--lg-scale-y));
   transform-origin: var(--lg-origin-x) var(--lg-origin-y);
@@ -130,7 +133,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .liquid-glass-node {
+  .liquid-glass-node.is-liquid-interactive {
     transform: none !important;
     transition: opacity 120ms ease-out;
   }

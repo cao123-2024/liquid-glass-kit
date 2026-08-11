@@ -37,19 +37,24 @@ export function LiquidGlassGroup({
   ...elementProps
 }: LiquidGlassGroupProps) {
   const rootRef = useRef<HTMLDivElement>(null);
+  const onRuntimeReadyRef = useRef(onRuntimeReady);
   const [runtime, setRuntime] = useState<LiquidGlassRuntime | null>(null);
+
+  useLayoutEffect(() => {
+    onRuntimeReadyRef.current = onRuntimeReady;
+  }, [onRuntimeReady]);
 
   useLayoutEffect(() => {
     const root = rootRef.current;
     if (!root) return;
     const runtime = new LiquidGlassRuntime(root, { settings, quality });
     setRuntime(runtime);
-    onRuntimeReady?.(runtime);
+    onRuntimeReadyRef.current?.(runtime);
     return () => {
       setRuntime(null);
       runtime.destroy();
     };
-  }, [quality, onRuntimeReady]);
+  }, [quality]);
 
   useLayoutEffect(() => {
     if (runtime && settings) runtime.setSettings(settings);

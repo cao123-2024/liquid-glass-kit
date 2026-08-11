@@ -2,6 +2,7 @@
   "name": "liquid-glass-kit",
   "version": "1.0.0",
   "description": "Seven-layer liquid glass material with fixed-anchor pull physics and opt-in fusion.",
+  "license": "MIT",
   "type": "module",
   "sideEffects": [
     "**/*.css"

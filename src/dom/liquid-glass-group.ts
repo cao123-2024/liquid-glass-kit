@@ -8,6 +8,7 @@ import { MaterialRenderer, type MaterialNodeFrame, type MaterialRendererLike } f
 export interface RegisterOptions {
   id: string;
   fusion?: boolean;
+  interactive?: boolean;
   radius?: number;
 }
 
@@ -22,6 +23,7 @@ interface NodeRecord {
   element: HTMLElement;
   engine: InteractionEngine;
   fusion: boolean;
+  interactive: boolean;
   radius: number;
   pointerId: number | null;
   suppressClick: boolean;
@@ -108,6 +110,7 @@ export class LiquidGlassGroup {
         rebound: this.currentSettings.rebound,
       }),
       fusion: options.fusion ?? true,
+      interactive: options.interactive ?? true,
       radius: options.radius ?? readRadius(element),
       pointerId: null,
       suppressClick: false,
@@ -116,9 +119,10 @@ export class LiquidGlassGroup {
     };
     this.records.set(record.id, record);
     element.classList.add("liquid-glass-node");
+    element.classList.toggle("is-liquid-interactive", record.interactive);
     element.dataset.liquidGlassId = record.id;
     element.dataset.liquidGlassFusion = String(record.fusion);
-    this.installPointerInput(record);
+    if (record.interactive) this.installPointerInput(record);
     this.queueFrame();
 
     let registered = true;
@@ -365,6 +369,7 @@ export class LiquidGlassGroup {
   private resetElement(element: HTMLElement): void {
     element.classList.remove(
       "liquid-glass-node",
+      "is-liquid-interactive",
       "is-liquid-pressed",
       "is-liquid-pulling",
       "is-liquid-fusion-pair",
