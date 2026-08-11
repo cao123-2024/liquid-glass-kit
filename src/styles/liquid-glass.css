@@ -1,0 +1,157 @@
+:root {
+  --liquid-glass-accent: #0078d4;
+  --liquid-glass-text: #e6edf3;
+  --liquid-glass-muted: #aebdca;
+  --liquid-glass-surface: rgba(226, 240, 248, 0.075);
+  --liquid-glass-surface-strong: rgba(220, 237, 246, 0.115);
+  --liquid-glass-edge: rgba(255, 255, 255, 0.22);
+  --liquid-glass-shadow: rgba(2, 12, 20, 0.44);
+}
+
+.liquid-glass-group {
+  position: relative;
+  isolation: isolate;
+}
+
+.liquid-glass-canvas {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.liquid-glass-fusion-bridge {
+  --lg-bridge-x: 0px;
+  --lg-bridge-y: 0px;
+  --lg-bridge-width: 0px;
+  --lg-bridge-height: 0px;
+  --lg-bridge-angle: 0deg;
+  --lg-bridge-opacity: 0;
+  position: absolute;
+  z-index: 1;
+  left: var(--lg-bridge-x);
+  top: var(--lg-bridge-y);
+  width: var(--lg-bridge-width);
+  height: var(--lg-bridge-height);
+  border-radius: 999px;
+  opacity: 0;
+  transform: translateY(-50%) rotate(var(--lg-bridge-angle));
+  transform-origin: left center;
+  background: linear-gradient(180deg, rgba(245, 251, 253, 0.13), rgba(190, 220, 231, 0.055));
+  backdrop-filter: blur(12px) saturate(138%) contrast(106%);
+  -webkit-backdrop-filter: blur(12px) saturate(138%) contrast(106%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 8px 24px rgba(1, 12, 19, 0.16);
+  pointer-events: none;
+  transition: opacity 90ms linear, height 120ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.liquid-glass-fusion-bridge.is-visible {
+  opacity: var(--lg-bridge-opacity);
+}
+
+.liquid-glass-node {
+  --lg-pull-x: 0px;
+  --lg-pull-y: 0px;
+  --lg-scale-x: 1;
+  --lg-scale-y: 1;
+  --lg-rotate: 0deg;
+  --lg-origin-x: 50%;
+  --lg-origin-y: 50%;
+  --lg-fusion-readiness: 0;
+  position: relative;
+  z-index: 2;
+  color: var(--liquid-glass-text);
+  background:
+    radial-gradient(120% 82% at 18% 2%, rgba(255, 255, 255, 0.14), transparent 42%),
+    linear-gradient(145deg, rgba(239, 249, 252, 0.095), rgba(178, 210, 222, 0.045));
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(11px) saturate(142%) contrast(106%);
+  -webkit-backdrop-filter: blur(11px) saturate(142%) contrast(106%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.11),
+    inset 1px 0 0 rgba(255, 255, 255, 0.035),
+    inset -1px 0 0 rgba(3, 18, 27, 0.09),
+    inset 0 -1px 0 rgba(2, 15, 23, 0.12),
+    0 2px 2px rgba(2, 12, 20, 0.06),
+    0 4px 5px rgba(2, 12, 20, 0.055),
+    0 7px 9px rgba(2, 12, 20, 0.05),
+    0 11px 14px rgba(2, 12, 20, 0.045),
+    0 16px 22px rgba(2, 12, 20, 0.04),
+    0 23px 32px rgba(2, 12, 20, 0.035),
+    0 31px 46px rgba(2, 12, 20, 0.03),
+    0 41px 64px rgba(2, 12, 20, 0.025),
+    0 54px 86px rgba(2, 12, 20, 0.02);
+  transform: translate3d(var(--lg-pull-x), var(--lg-pull-y), 0)
+    rotate(var(--lg-rotate)) scale(var(--lg-scale-x), var(--lg-scale-y));
+  transform-origin: var(--lg-origin-x) var(--lg-origin-y);
+  will-change: transform;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.liquid-glass-node::before,
+.liquid-glass-node::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.liquid-glass-node::before {
+  z-index: -1;
+  inset: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.24);
+  background: linear-gradient(118deg, rgba(255, 255, 255, 0.075), transparent 32% 72%, rgba(255, 255, 255, 0.025));
+  mask: linear-gradient(#000, transparent 58%);
+}
+
+.liquid-glass-node::after {
+  z-index: -1;
+  inset: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.025);
+  box-shadow: inset 0 0 20px rgba(130, 203, 225, 0.025), inset 0 -12px 25px rgba(0, 27, 39, 0.035);
+  opacity: calc(0.48 + var(--lg-fusion-readiness) * 0.3);
+}
+
+.liquid-glass-node.is-liquid-pressed {
+  filter: brightness(1.055);
+}
+
+.liquid-glass-node.is-liquid-pulling {
+  cursor: grabbing;
+}
+
+.liquid-glass-node.is-liquid-fusion-pair {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liquid-glass-node {
+    transform: none !important;
+    transition: opacity 120ms ease-out;
+  }
+
+  .liquid-glass-fusion-bridge {
+    transition: opacity 80ms linear;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .liquid-glass-node,
+  .liquid-glass-fusion-bridge {
+    background: rgba(22, 27, 34, 0.9);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .liquid-glass-node {
+    background: rgba(14, 24, 31, 0.92);
+    border-color: rgba(255, 255, 255, 0.62);
+  }
+}
